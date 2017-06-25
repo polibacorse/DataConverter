@@ -67,7 +67,7 @@ std::string DataConverter::Cnvt_Data2Json(const struct Data fmt)
 {
 	std::stringstream buf;
 
-	buf << "{\"time\":" << fmt.time << "\"value\":" << fmt.value << "}";
+	buf << "{\"time\":" << fmt.time << ",\"value\":" << fmt.value << "}";
 	return buf.str();
 }
 
