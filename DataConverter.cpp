@@ -1,12 +1,12 @@
 /*
  * DataConverter
  * Copyright (C) 2017  Poliba Corse and its members
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -68,6 +68,7 @@ std::string DataConverter::Cnvt_Data2Json(const struct Data fmt)
 	std::stringstream buf;
 
 	buf << "{\"time\":" << fmt.time << ",\"value\":" << fmt.value << "}";
+	// std::cout<< buf.str() << std::endl; // DEBUG PURPOSES
 	return buf.str();
 }
 
@@ -102,6 +103,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = ((frame.data[6] * 3.0) / 255.0) - 1.5 + (frame.data[7] / 1000.0);
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 748:
 		channelName = "a2y";
 		value = ((frame.data[0] * 3.0) / 255.0) - 1.5 + (frame.data[1] / 1000.0);
@@ -111,6 +113,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = ((frame.data[2] * 3.0) / 255.0) - 1.5 + (frame.data[3] / 1000.0);
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 749:
 		channelName = "a1z";
 		value = ((frame.data[0] * 3.0) / 255.0) - 1.5 + (frame.data[1] / 1000.0);
@@ -124,6 +127,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = ((frame.data[4] * 3.0) / 255.0) - 1.5 + (frame.data[5] / 1000.0);
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 750:
 		channelName = "slip_ok";
 		value = frame.data[7];
@@ -144,7 +148,12 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "telemetria_on-off";
 		value = (frame.data[0] & 16) / 16;
 		this->Pub(channelPrefix + channelName, {frame.time, value});
+
+		channelName = "lap_close";
+		value = frame.data[1];
+		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 751:
 		channelName = "target_rpm_up";
 		value = (frame.data[0] * 256.0) + frame.data[1];
@@ -162,6 +171,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = (frame.data[6] * 256.0) + frame.data[7];
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 752:
 		channelName = "altitude";
 		value = ((frame.data[0] * 256.0) + frame.data[1]) / 10.0;
@@ -183,18 +193,21 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = (frame.data[6] * 256.0) + frame.data[7];
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 753:
 		channelName = "latitude";
 		char *framedata = frame.data;
 		value = *((double*)framedata);
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 754:
 		channelName = "longitude";
 		char *framedata = frame.data;
 		value = *((double*)framedata);
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 768:
 		channelName = "rpm";
 		value = (frame.data[0] * 256.0) + frame.data[1];
@@ -212,6 +225,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = (frame.data[6] * 256.0) + frame.data[7];
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 769:
 		channelName = "derivata_farfalla";
 		value = (frame.data[0] * 256.0) + frame.data[1];
@@ -221,6 +235,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = (frame.data[2] * 256.0) + frame.data[3];
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 770:
 		channelName = "vhspeed";
 		value = ((frame.data[0] * 256.0) + frame.data[1]) * 0.1;
@@ -238,6 +253,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = ((frame.data[6] * 256.0) + frame.data[7]) * 0.25;
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 772:
 		channelName = "terogpianoquotato";
 		value = ((frame.data[0] * 256.0) + frame.data[1]);
@@ -255,6 +271,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = ((frame.data[6] * 256.0) + frame.data[7]) * 0.25;
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 774:
 		channelName = "gear";
 		value = frame.data[1];
@@ -272,6 +289,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = ((frame.data[6] * 256.0) + frame.data[7]);
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 775:
 		channelName = "baro";
 		value = ((frame.data[0] * 256.0) + frame.data[1]);
@@ -285,6 +303,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = (frame.data[4] * 256.0) + frame.data[5];
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 776:
 		channelName = "vbattdir";
 		value = ((frame.data[0] * 256.0) + frame.data[1]) * 18.0 / 1024.0;
@@ -294,6 +313,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 		value = ((frame.data[2] * 256.0) + frame.data[3]) * 18.0 / 1024.0;
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
+
 		case 779:
 		channelName = "th20";
 		value = (((frame.data[0] * 256.0) + frame.data[1]) * 160.0 / 65535.0) - 10.0;
