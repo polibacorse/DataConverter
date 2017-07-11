@@ -80,8 +80,9 @@ void DataConverter::Pub(std::string channel, const struct Data fmt)
 
 void DataConverter::Fmt(struct CANFrame frame)
 {
-    // axiliary val to eval payload
+	// axiliary val to eval payload
 	double value;
+	char *framedata;
 	std::string channelPrefix("$SYS/formatted/");
 	std::string channel, channelName, json;
 
@@ -196,14 +197,14 @@ void DataConverter::Fmt(struct CANFrame frame)
 
 		case 753:
 		channelName = "latitude";
-		char *framedata = frame.data;
+		framedata = frame.data;
 		value = *((double*)framedata);
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
 
 		case 754:
 		channelName = "longitude";
-		char *framedata = frame.data;
+		framedata = frame.data;
 		value = *((double*)framedata);
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
