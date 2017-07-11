@@ -185,14 +185,15 @@ void DataConverter::Fmt(struct CANFrame frame)
 		break;
 		case 753:
 		channelName = "latitude";
-		value = frame.data[3] + (frame.data[2] * pow(10.0,-2.0)) +
-		(frame.data[1] * pow(10.0,-4.0)) +
-		(frame.data[0] * pow(10.0,-6.0)) + 34.0;
-
+		char *framedata = frame.data;
+		value = *((double*)framedata);
+		this->Pub(channelPrefix + channelName, {frame.time, value});
+		break;
+		case 754:
 		channelName = "longitude";
-		value = frame.data[7] + (frame.data[6] * pow(10.0,-2.0)) +
-		(frame.data[5] * pow(10.0,-4.0)) +
-		(frame.data[4] * pow(10.0,-6.0)) - 70.0;
+		char *framedata = frame.data;
+		value = *((double*)framedata);
+		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
 		case 768:
 		channelName = "rpm";
