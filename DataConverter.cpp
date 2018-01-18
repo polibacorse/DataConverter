@@ -20,16 +20,19 @@
 #include <sstream>
 #include <math.h>
 #include <iostream>
+//#define DEBUG  //uncomment this line to allow verbose output
 
 DataConverter::DataConverter() : mosqpp::mosquittopp()
 {
 	const char *host = "localhost";
 	this->connect_async(host);
 	this->loop_start();
+
 }
 
 DataConverter::~DataConverter()
 {
+
 	this->loop_stop();
 	this->disconnect();
 }
@@ -69,7 +72,7 @@ std::string DataConverter::Cnvt_Data2Json(const struct Data fmt)
 	std::stringstream buf;
 
 	buf << "{\"time\":" << fmt.time << ",\"value\":" << fmt.value << "}";
-	//qui debuggavo
+
 	return buf.str();
 }
 
@@ -93,7 +96,11 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "a1x";
 		value = ((frame.data[0] * 3.0) / 255.0) - 1.5 + (frame.data[1] / 1000.0);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
+
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -101,7 +108,12 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "a2x";
 		value = ((frame.data[2] * 3.0) / 255.0) - 1.5 + (frame.data[3] / 1000.0);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
+
+
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -109,7 +121,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "a3x";
 		value = ((frame.data[4] * 3.0) / 255.0) - 1.5 + (frame.data[5] / 1000.0);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -117,7 +131,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "a1y";
 		value = ((frame.data[6] * 3.0) / 255.0) - 1.5 + (frame.data[7] / 1000.0);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -127,7 +143,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "a2y";
 		value = ((frame.data[0] * 3.0) / 255.0) - 1.5 + (frame.data[1] / 1000.0);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -135,7 +153,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "a3y";
 		value = ((frame.data[2] * 3.0) / 255.0) - 1.5 + (frame.data[3] / 1000.0);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -145,7 +165,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "a1z";
 		value = ((frame.data[0] * 3.0) / 255.0) - 1.5 + (frame.data[1] / 1000.0);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -153,7 +175,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "a2z";
 		value = ((frame.data[2] * 3.0) / 255.0) - 1.5 + (frame.data[3] / 1000.0);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -161,7 +185,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "a3z";
 		value = ((frame.data[4] * 3.0) / 255.0) - 1.5 + (frame.data[5] / 1000.0);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -171,7 +197,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "slip_ok";
 		value = frame.data[7];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -179,7 +207,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "auto_acc_flag";
 		value = (frame.data[0] & 128) / 128;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -187,7 +217,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "debug_mode";
 		value = (frame.data[0] & 64) / 64;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -195,7 +227,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "datalog_on-off";
 		value = (frame.data[0] & 32) / 32;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -203,7 +237,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "telemetria_on-off";
 		value = (frame.data[0] & 16) / 16;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -211,7 +247,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "lap_close";
 		value = frame.data[1];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -221,7 +259,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "target_rpm_up";
 		value = (frame.data[0] * 256.0) + frame.data[1];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -229,7 +269,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "shift_duration";
 		value = (frame.data[2] * 256.0) + frame.data[3];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -237,7 +279,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "time_0-100";
 		value = (frame.data[4] * 256.0) + frame.data[5];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -245,7 +289,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "time_0-75";
 		value = (frame.data[6] * 256.0) + frame.data[7];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -255,7 +301,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "altitude";
 		value = ((frame.data[0] * 256.0) + frame.data[1]) / 10.0;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -263,7 +311,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "gps_speed";
 		value = ((frame.data[2] * 256.0) + frame.data[3]) / 10.0;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -271,7 +321,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "satellite";
 		value = frame.data[4];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -279,7 +331,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "fix";
 		value = frame.data[5];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -287,7 +341,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "gps_time";
 		value = (frame.data[6] * 256.0) + frame.data[7];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -298,7 +354,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		framedata = frame.data;
 		value = *((double*)framedata);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -309,7 +367,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		framedata = frame.data;
 		value = *((double*)framedata);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -319,7 +379,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "rpm";
 		value = (frame.data[0] * 256.0) + frame.data[1];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -327,7 +389,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "tps";
 		value = (frame.data[2] * 100.0) / 255.0;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -335,7 +399,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "map";
 		value = (frame.data[4] * 256.0) + frame.data[5];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -343,7 +409,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "lambda";
 		value = (frame.data[6] * 256.0) + frame.data[7];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -353,7 +421,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "derivata_farfalla";
 		value = (frame.data[0] * 256.0) + frame.data[1];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -361,7 +431,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "dmap";
 		value = (frame.data[2] * 256.0) + frame.data[3];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -371,7 +443,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "vhspeed";
 		value = ((frame.data[0] * 256.0) + frame.data[1]) * 0.1;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -379,7 +453,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "draxspeed";
 		value = ((frame.data[2] * 256.0) + frame.data[3]) * 0.1;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -387,7 +463,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "slip_calc";
 		value = ((frame.data[4] * 256.0) + frame.data[5]) * 50.0 / 255.0;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -395,7 +473,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "osasplip";
 		value = ((frame.data[6] * 256.0) + frame.data[7]) * 0.25;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -405,7 +485,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "terogpianoquotato";
 		value = ((frame.data[0] * 256.0) + frame.data[1]);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -413,7 +495,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "terog";
 		value = ((frame.data[2] * 256.0) + frame.data[3]);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -421,7 +505,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "sabase";
 		value = ((frame.data[4] * 256.0) + frame.data[5]) * 0.25;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -429,7 +515,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "sa";
 		value = ((frame.data[6] * 256.0) + frame.data[7]) * 0.25;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -439,7 +527,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "gear";
 		value = frame.data[1];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -447,7 +537,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "gear_shift_time_remain";
 		value = ((frame.data[2] * 256.0) + frame.data[3]);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -455,7 +547,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "poil";
 		value = ((frame.data[4] * 256.0) + frame.data[5]);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
@@ -463,7 +557,9 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "pfuel";
 		value = ((frame.data[6] * 256.0) + frame.data[7]);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
@@ -472,21 +568,27 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "baro";
 		value = ((frame.data[0] * 256.0) + frame.data[1]);
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 
 		channelName = "lnr3i";
 		value = (frame.data[2] * 256.0) + frame.data[3];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 
 		channelName = "lnr4i";
 		value = (frame.data[4] * 256.0) + frame.data[5];
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
@@ -495,14 +597,18 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "vbattdir";
 		value = ((frame.data[0] * 256.0) + frame.data[1]) * 18.0 / 1024.0;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 
 		channelName = "vbattkey";
 		value = ((frame.data[2] * 256.0) + frame.data[3]) * 18.0 / 1024.0;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
@@ -511,28 +617,36 @@ void DataConverter::Fmt(struct CANFrame frame)
 		channelName = "th20";
 		value = (((frame.data[0] * 256.0) + frame.data[1]) * 160.0 / 65535.0) - 10.0;
 
-		 std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                 #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 
 		channelName = "toil";
 		value = ((frame.data[2] * 256.0) + frame.data[3]) * 18.0 / 1024.0;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 
 		channelName = "tmp";
 		value = ((frame.data[4] * 256.0) + frame.data[5]) * 18.0 / 1024.0;
 
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES		
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 
 		channelName = "tair";
 		value = ((frame.data[6] * 256.0) + frame.data[7]) * 18.0 / 1024.0;
 		
-		std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #ifdef DEBUG
+                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
+                #endif
 
 		this->Pub(channelPrefix + channelName, {frame.time, value});
 		break;
