@@ -5,6 +5,9 @@ all: DataConverter
 
 DataConverter: main.o DataConverter.o
 	$(CROSS_COMPILE)$(CXX) -g -o DataConverter main.o DataConverter.o $(INCLUDE) $(LDLINK)
+	
+debug: main.o DataConverter.o
+	$(CROSS_COMPILE)$(CXX) -g -o DataConverter main.o DataConverter.o $(INCLUDE) $(LDLINK) -DDEBUG
 
 %.o: %.cpp
 	$(CROSS_COMPILE)$(CXX) -g -c $< --std=c++11 $(INCLUDE) $(LDLINK)
