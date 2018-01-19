@@ -47,7 +47,7 @@ DataConverter::~DataConverter()
 void DataConverter::on_connect(int rc)
 {
 	if (!rc)
-		this->subscribe(NULL, "$SYS/raw");
+		this->subscribe(NULL, "data/raw");
 }
 
 void DataConverter::on_message(const struct mosquitto_message *message)
@@ -95,7 +95,7 @@ void DataConverter::Fmt(struct CANFrame frame)
 	// axiliary val to eval payload
 	double value;
 	char *framedata;
-	std::string channelPrefix("$SYS/formatted/");
+	std::string channelPrefix("data/formatted/");
 	std::string channel, channelName, json;
 
 	switch (frame.id) {
