@@ -19,8 +19,15 @@
 #include <json/json.h>
 #include <sstream>
 #include <math.h>
+
+/* 
+ * Verbose output (DEBUG mode)
+ * to enable it please compile this program with DEBUG flag
+ * or type "make debug"
+ */
+#ifdef DEBUG
 #include <iostream>
-//#define DEBUG  //uncomment this line to allow verbose output
+#endif
 
 DataConverter::DataConverter() : mosqpp::mosquittopp()
 {
