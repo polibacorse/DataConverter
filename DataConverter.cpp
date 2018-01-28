@@ -95,11 +95,13 @@ void DataConverter::format(struct CANFrame frame)
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
         break;
 
-        case 750:
-        topicName = "slip_ok";
-        value = frame.data[7].toInt();
-        qDebug() << topicName << ": " << value;
-        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+void DataConverter::Fmt(struct CANFrame frame)
+{
+	// axiliary val to eval payload
+	double value;
+	char *framedata;
+	std::string channelPrefix("$SYS/formatted/");
+	std::string channel, channelName, json;
 
         topicName = "auto_acc_flag";
         value = (frame.data[0].toInt() & 128) / 128;
