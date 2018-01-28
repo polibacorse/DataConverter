@@ -1,662 +1,355 @@
-/*
- * DataConverter
- * Copyright (C) 2017  Poliba Corse and its members
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#include "DataConverter.h"
-#include <json/json.h>
-#include <sstream>
-#include <math.h>
+#include "dataconverter.h"
+#include <QDebug>
 
-/* 
- * Verbose output (DEBUG mode)
- * to enable it please compile this program with DEBUG flag
- * or type "make debug"
- */
-#ifdef DEBUG
-#include <iostream>
-#endif
+#include <QJsonObject>
+#include <QByteArray>
 
-DataConverter::DataConverter() : mosqpp::mosquittopp()
+DataConverter::DataConverter(QObject *parent) : QObject(parent), eventLoop{this}
 {
-	const char *host = "localhost";
-	this->connect_async(host);
-	this->loop_start();
-
+    transceiver = new MosquittoTransceiver(this);
+    transceiver->connect();
+    transceiver->subscribe("data/raw");
 }
 
-DataConverter::~DataConverter()
+void DataConverter::run()
 {
+    connect(transceiver, SIGNAL(message(QString, QJsonObject)), this, SLOT(message(QString, QJsonObject)));
+    connect(this, SIGNAL(publish(QString,QJsonObject)), transceiver, SLOT(publish(QString,QJsonObject)));
 
-	this->loop_stop();
-	this->disconnect();
+    emit eventLoop.exec();
 }
 
-void DataConverter::on_connect(int rc)
+void DataConverter::message(QString /* unused */, QJsonObject data)
 {
-	if (!rc)
-		this->subscribe(NULL, "data/raw");
+    this->format(this->JSON2CAN(data));
 }
 
-void DataConverter::on_message(const struct mosquitto_message *message)
+struct CANFrame DataConverter::JSON2CAN(const QJsonObject data)
 {
-	const char *json = (char *)message->payload;
+    struct CANFrame frame = {
+        .id = data["id"].toInt(),
+        .time = data["time"].toInt(),
+        .data = data["data"].toArray(),
+    };
 
-	this->Fmt(this->Cnvt_Json2CAN(json));
+    qDebug() << "Packet arrived from ID: " << frame.id.toInt();
+    return frame;
 }
 
-struct CANFrame DataConverter::Cnvt_Json2CAN(const char *jsonRaw)
+void DataConverter::format(struct CANFrame frame)
 {
-	Json::Reader reader;
-	Json::Value json;
-	struct CANFrame frame = {};
+    double value;
+    QByteArray framedata(nullptr, 4);
+    QString topicPrefix("data/formatted/");
+    QString topicName;
 
-	reader.parse(jsonRaw, json);
+    switch (frame.id.toInt()) {
+        case 747:
+        topicName = "a1x";
+        value = ((frame.data[0].toInt() * 3.0) / 255.0) - 1.5 + (frame.data[1].toInt() / 1000.0);
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
 
-	frame.id = (short int)json["id"].asInt();
-	frame.time = json["time"].asInt64();
+        topicName = "a2x";
+        value = ((frame.data[2].toInt() * 3.0) / 255.0) - 1.5 + (frame.data[3].toInt() / 1000.0);
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
 
-	for (int i = 0; i < 8; i++)
-		frame.data[i] = json["data"][i].asInt();
+        topicName = "a3x";
+        value = ((frame.data[4].toInt() * 3.0) / 255.0) - 1.5 + (frame.data[5].toInt() / 1000.0);
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
 
-	return frame;
+        topicName = "a1y";
+        value = ((frame.data[6].toInt() * 3.0) / 255.0) - 1.5 + (frame.data[7].toInt() / 1000.0);
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 748:
+        topicName = "a2y";
+        value = ((frame.data[0].toInt() * 3.0) / 255.0) - 1.5 + (frame.data[1].toInt() / 1000.0);
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "a3y";
+        value = ((frame.data[2].toInt() * 3.0) / 255.0) - 1.5 + (frame.data[3].toInt() / 1000.0);
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 749:
+        topicName = "a1z";
+        value = ((frame.data[0].toInt() * 3.0) / 255.0) - 1.5 + (frame.data[1].toInt() / 1000.0);
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "a2z";
+        value = ((frame.data[2].toInt() * 3.0) / 255.0) - 1.5 + (frame.data[3].toInt() / 1000.0);
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "a3z";
+        value = ((frame.data[4].toInt() * 3.0) / 255.0) - 1.5 + (frame.data[5].toInt() / 1000.0);
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 750:
+        topicName = "slip_ok";
+        value = frame.data[7].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "auto_acc_flag";
+        value = (frame.data[0].toInt() & 128) / 128;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "debug_mode";
+        value = (frame.data[0].toInt() & 64) / 64;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "datalog_on-off";
+        value = (frame.data[0].toInt() & 32) / 32;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "telemetria_on-off";
+        value = (frame.data[0].toInt() & 16) / 16;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "lap_close";
+        value = frame.data[1].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 751:
+        topicName = "target_rpm_up";
+        value = (frame.data[0].toInt() * 256.0) + frame.data[1].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "shift_duration";
+        value = (frame.data[2].toInt() * 256.0) + frame.data[3].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "time_0-100";
+        value = (frame.data[4].toInt() * 256.0) + frame.data[5].toInt();
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "time_0-75";
+        value = (frame.data[6].toInt() * 256.0) + frame.data[7].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 752:
+        topicName = "altitude";
+        value = ((frame.data[0].toInt() * 256.0) + frame.data[1].toInt()) / 10.0;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "gps_speed";
+        value = ((frame.data[2].toInt() * 256.0) + frame.data[3].toInt()) / 10.0;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "satellite";
+        value = frame.data[4].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "fix";
+        value = frame.data[5].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "gps_time";
+        value = (frame.data[6].toInt() * 256.0) + frame.data[7].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 753:
+        topicName = "latitude";
+        // Here from high-level value of QJsonArray to a double is tricky.
+        for (int i = 0; i < 4; i++) {
+            framedata[i] = frame.data[i].toInt();
+        }
+        value = *(reinterpret_cast<const double*>(framedata.constData()));
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 754:
+        topicName = "longitude";
+        // Here from high-level value of QJsonArray to a double is tricky.
+        for (int i = 0; i < 4; i++) {
+            framedata[i] = frame.data[i].toInt();
+        }
+        value = *(reinterpret_cast<const double*>(framedata.constData()));
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 768:
+        topicName = "rpm";
+        value = (frame.data[0].toInt() * 256.0) + frame.data[1].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "tps";
+        value = (frame.data[2].toInt() * 100.0) / 255.0;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "map";
+        value = (frame.data[4].toInt() * 256.0) + frame.data[5].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "lambda";
+        value = (frame.data[6].toInt() * 256.0) + frame.data[7].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 769:
+        topicName = "derivata_farfalla";
+        value = (frame.data[0].toInt() * 256.0) + frame.data[1].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "dmap";
+        value = (frame.data[2].toInt() * 256.0) + frame.data[3].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 770:
+        topicName = "vhspeed";
+        value = ((frame.data[0].toInt() * 256.0) + frame.data[1].toInt()) * 0.1;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "draxspeed";
+        value = ((frame.data[2].toInt() * 256.0) + frame.data[3].toInt()) * 0.1;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "slip_calc";
+        value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt()) * 50.0 / 255.0;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "osasplip";
+        value = ((frame.data[6].toInt() * 256.0) + frame.data[7].toInt()) * 0.25;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 772:
+        topicName = "terogpianoquotato";
+        value = ((frame.data[0].toInt() * 256.0) + frame.data[1].toInt());
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "terog";
+        value = ((frame.data[2].toInt() * 256.0) + frame.data[3].toInt());
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "sabase";
+        value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt()) * 0.25;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "sa";
+        value = ((frame.data[6].toInt() * 256.0) + frame.data[7].toInt()) * 0.25;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 774:
+        topicName = "gear";
+        value = frame.data[1].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "gear_shift_time_remain";
+        value = ((frame.data[2].toInt() * 256.0) + frame.data[3].toInt());
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "poil";
+        value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt());
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "pfuel";
+        value = ((frame.data[6].toInt() * 256.0) + frame.data[7].toInt());
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 775:
+        topicName = "baro";
+        value = ((frame.data[0].toInt() * 256.0) + frame.data[1].toInt());
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "lnr3i";
+        value = (frame.data[2].toInt() * 256.0) + frame.data[3].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "lnr4i";
+        value = (frame.data[4].toInt() * 256.0) + frame.data[5].toInt();
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 776:
+        topicName = "vbattdir";
+        value = ((frame.data[0].toInt() * 256.0) + frame.data[1].toInt()) * 18.0 / 1024.0;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "vbattkey";
+        value = ((frame.data[2].toInt() * 256.0) + frame.data[3].toInt()) * 18.0 / 1024.0;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        case 779:
+        topicName = "th20";
+        value = (((frame.data[0].toInt() * 256.0) + frame.data[1].toInt()) * 160.0 / 65535.0) - 10.0;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "toil";
+        value = ((frame.data[2].toInt() * 256.0) + frame.data[3].toInt()) * 18.0 / 1024.0;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "tmp";
+        value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt()) * 18.0 / 1024.0;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "tair";
+        value = ((frame.data[6].toInt() * 256.0) + frame.data[7].toInt()) * 18.0 / 1024.0;
+        qDebug() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+        break;
+
+        default:
+        qDebug() << "No valid packet found! ID: " << frame.id.toInt();
+        return;
+    }
 }
-
-std::string DataConverter::Cnvt_Data2Json(const struct Data fmt)
-{
-	std::stringstream buf;
-
-	buf << "{\"time\":" << fmt.time << ",\"value\":" << fmt.value << "}";
-
-	return buf.str();
-}
-
-void DataConverter::Pub(std::string channel, const struct Data fmt)
-{
-	std::string json = Cnvt_Data2Json(fmt);
-	this->publish(NULL, channel.c_str(), json.length(), json.c_str());
-
-}
-
-void DataConverter::Fmt(struct CANFrame frame)
-{
-	// axiliary val to eval payload
-	double value;
-	char *framedata;
-	std::string channelPrefix("data/formatted/");
-	std::string channel, channelName, json;
-
-	switch (frame.id) {
-		case 747:
-		channelName = "a1x";
-		value = ((frame.data[0] * 3.0) / 255.0) - 1.5 + (frame.data[1] / 1000.0);
-
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "a2x";
-		value = ((frame.data[2] * 3.0) / 255.0) - 1.5 + (frame.data[3] / 1000.0);
-
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "a3x";
-		value = ((frame.data[4] * 3.0) / 255.0) - 1.5 + (frame.data[5] / 1000.0);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "a1y";
-		value = ((frame.data[6] * 3.0) / 255.0) - 1.5 + (frame.data[7] / 1000.0);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 748:
-		channelName = "a2y";
-		value = ((frame.data[0] * 3.0) / 255.0) - 1.5 + (frame.data[1] / 1000.0);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "a3y";
-		value = ((frame.data[2] * 3.0) / 255.0) - 1.5 + (frame.data[3] / 1000.0);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 749:
-		channelName = "a1z";
-		value = ((frame.data[0] * 3.0) / 255.0) - 1.5 + (frame.data[1] / 1000.0);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "a2z";
-		value = ((frame.data[2] * 3.0) / 255.0) - 1.5 + (frame.data[3] / 1000.0);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "a3z";
-		value = ((frame.data[4] * 3.0) / 255.0) - 1.5 + (frame.data[5] / 1000.0);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 750:
-		channelName = "slip_ok";
-		value = frame.data[7];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "auto_acc_flag";
-		value = (frame.data[0] & 128) / 128;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "debug_mode";
-		value = (frame.data[0] & 64) / 64;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "datalog_on-off";
-		value = (frame.data[0] & 32) / 32;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "telemetria_on-off";
-		value = (frame.data[0] & 16) / 16;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "lap_close";
-		value = frame.data[1];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 751:
-		channelName = "target_rpm_up";
-		value = (frame.data[0] * 256.0) + frame.data[1];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "shift_duration";
-		value = (frame.data[2] * 256.0) + frame.data[3];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "time_0-100";
-		value = (frame.data[4] * 256.0) + frame.data[5];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "time_0-75";
-		value = (frame.data[6] * 256.0) + frame.data[7];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 752:
-		channelName = "altitude";
-		value = ((frame.data[0] * 256.0) + frame.data[1]) / 10.0;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "gps_speed";
-		value = ((frame.data[2] * 256.0) + frame.data[3]) / 10.0;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "satellite";
-		value = frame.data[4];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "fix";
-		value = frame.data[5];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "gps_time";
-		value = (frame.data[6] * 256.0) + frame.data[7];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 753:
-		channelName = "latitude";
-		framedata = frame.data;
-		value = *((double*)framedata);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 754:
-		channelName = "longitude";
-		framedata = frame.data;
-		value = *((double*)framedata);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 768:
-		channelName = "rpm";
-		value = (frame.data[0] * 256.0) + frame.data[1];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "tps";
-		value = (frame.data[2] * 100.0) / 255.0;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "map";
-		value = (frame.data[4] * 256.0) + frame.data[5];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "lambda";
-		value = (frame.data[6] * 256.0) + frame.data[7];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 769:
-		channelName = "derivata_farfalla";
-		value = (frame.data[0] * 256.0) + frame.data[1];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "dmap";
-		value = (frame.data[2] * 256.0) + frame.data[3];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 770:
-		channelName = "vhspeed";
-		value = ((frame.data[0] * 256.0) + frame.data[1]) * 0.1;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "draxspeed";
-		value = ((frame.data[2] * 256.0) + frame.data[3]) * 0.1;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "slip_calc";
-		value = ((frame.data[4] * 256.0) + frame.data[5]) * 50.0 / 255.0;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "osasplip";
-		value = ((frame.data[6] * 256.0) + frame.data[7]) * 0.25;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 772:
-		channelName = "terogpianoquotato";
-		value = ((frame.data[0] * 256.0) + frame.data[1]);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "terog";
-		value = ((frame.data[2] * 256.0) + frame.data[3]);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "sabase";
-		value = ((frame.data[4] * 256.0) + frame.data[5]) * 0.25;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "sa";
-		value = ((frame.data[6] * 256.0) + frame.data[7]) * 0.25;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 774:
-		channelName = "gear";
-		value = frame.data[1];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "gear_shift_time_remain";
-		value = ((frame.data[2] * 256.0) + frame.data[3]);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "poil";
-		value = ((frame.data[4] * 256.0) + frame.data[5]);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "pfuel";
-		value = ((frame.data[6] * 256.0) + frame.data[7]);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 775:
-		channelName = "baro";
-		value = ((frame.data[0] * 256.0) + frame.data[1]);
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "lnr3i";
-		value = (frame.data[2] * 256.0) + frame.data[3];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "lnr4i";
-		value = (frame.data[4] * 256.0) + frame.data[5];
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 776:
-		channelName = "vbattdir";
-		value = ((frame.data[0] * 256.0) + frame.data[1]) * 18.0 / 1024.0;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "vbattkey";
-		value = ((frame.data[2] * 256.0) + frame.data[3]) * 18.0 / 1024.0;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-
-		case 779:
-		channelName = "th20";
-		value = (((frame.data[0] * 256.0) + frame.data[1]) * 160.0 / 65535.0) - 10.0;
-
-                 #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "toil";
-		value = ((frame.data[2] * 256.0) + frame.data[3]) * 18.0 / 1024.0;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "tmp";
-		value = ((frame.data[4] * 256.0) + frame.data[5]) * 18.0 / 1024.0;
-
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-
-		channelName = "tair";
-		value = ((frame.data[6] * 256.0) + frame.data[7]) * 18.0 / 1024.0;
-		
-                #ifdef DEBUG
-                std::cout<< channelName<<": " <<" "<<value << std::endl; // DEBUG PURPOSES
-                #endif
-
-		this->Pub(channelPrefix + channelName, {frame.time, value});
-		break;
-	}
-}
-

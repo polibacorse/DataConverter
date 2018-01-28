@@ -1,50 +1,43 @@
-/*
- * DataConverter
- * Copyright (C) 2017  Poliba Corse and its members
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-#pragma once
-#include <mosquittopp.h>
-#include <string>
+#ifndef DATACONVERTER_H
+#define DATACONVERTER_H
 
+#include "mosquittotransceiver.h"
+
+#include <QEventLoop>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QObject>
+#include <QRunnable>
+
+namespace {
 struct CANFrame {
-	short int id;
-	unsigned int time;
-	char data[8];
+    const QJsonValue id;
+    const QJsonValue time;
+    const QJsonArray data;
 };
+}
 
-struct Data {
-	unsigned int time;
-	double value;
-};
+class DataConverter : public QObject,  public QRunnable
+{
+    Q_OBJECT
 
-class DataConverter : public mosqpp::mosquittopp {
 public:
-	/*
-	 * Use async capability of mosquitto to improve multithreading
-	 */
-	DataConverter();
-	~DataConverter();
+    DataConverter(QObject *parent = nullptr);
 
-	// Mosquitto interface callbacks
-	void on_connect(int rc);
-	void on_message(const struct mosquitto_message *message);
+signals:
+    void publish(QString topic, QJsonObject data);
 
-	struct CANFrame Cnvt_Json2CAN(const char *);
-	std::string Cnvt_Data2Json(const struct Data);
-	void Fmt(const struct CANFrame);
-	void Pub(std::string, const struct Data);
+public slots:
+    void message(QString topic, QJsonObject data);
+
+private:
+    void run();
+    struct CANFrame JSON2CAN(const QJsonObject);
+    void format(struct CANFrame);
+
+    QEventLoop eventLoop;
+    MosquittoTransceiver *transceiver;
 };
 
+#endif // DATACONVERTER_H
