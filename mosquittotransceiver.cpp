@@ -150,7 +150,7 @@ void MosquittoTransceiver::publish(QString topic, QJsonObject jpayload)
 
     /* Debug - Time elapsed */
     mutex_startTime_.lock();
-    qDebug() << "Elapsed time from last arrive: " << startTime_.elapsed() << "ms";
+    qDebug() << "Elapsed time since last arrive: " << startTime_.elapsed() << "ms";
     mutex_startTime_.unlock();
 
     auto payload = QJsonDocument(jpayload).toJson(QJsonDocument::Compact);
