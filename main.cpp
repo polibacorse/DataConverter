@@ -1,10 +1,15 @@
-#include "DataConverter.h"
-#include <unistd.h>
+#include <QCoreApplication>
+#include <QThreadPool>
 
-int main()
+#include "dataconverter.h"
+
+int main(int argc, char *argv[])
 {
-	DataConverter *dc = new DataConverter();
-	
-	while (true)
-		sleep(1);
+    QCoreApplication a(argc, argv);
+
+    DataConverter *converter = new DataConverter();
+    // QThreadPool takes ownership and deleted 'converter' automatically
+    QThreadPool::globalInstance()->start(converter);
+
+    return a.exec();
 }
