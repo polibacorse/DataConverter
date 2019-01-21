@@ -60,7 +60,7 @@ MosquittoTransceiver::MosquittoTransceiver(QObject *parent) : QThread(parent), i
     QObject::connect(this, &MosquittoTransceiver::_disconnected, this, onDisconnected, Qt::QueuedConnection);
     QObject::connect(this, &MosquittoTransceiver::_message, this, onMessage, Qt::QueuedConnection);
 
-    qDebug() << "MosquittoTransceiver initialized.";
+    //qDebug() << "MosquittoTransceiver initialized.";
 
     startTime_.start();
 }
@@ -110,7 +110,7 @@ void MosquittoTransceiver::run()
         return;
     }
 
-    qDebug() << "MosquittoReceiver: connected. Start looping...";
+    //qDebug() << "MosquittoReceiver: connected. Start looping...";
 
     while (continueRunning_) {
         rc = mosquitto_loop(mosq, 500, 1); // we need high performance and quasi-realtime data elaboration
@@ -146,11 +146,11 @@ void MosquittoTransceiver::run()
 
 void MosquittoTransceiver::publish(QString topic, QJsonObject jpayload)
 {
-    qDebug() << "Publishing to " << topic;
+    //qDebug() << "Publishing to " << topic;
 
     /* Debug - Time elapsed */
     mutex_startTime_.lock();
-    qDebug() << "Elapsed time from last arrive: " << startTime_.elapsed() << "ms";
+    //qDebug() << "Elapsed time from last arrive: " << startTime_.elapsed() << "ms";
     mutex_startTime_.unlock();
 
     auto payload = QJsonDocument(jpayload).toJson(QJsonDocument::Compact);
@@ -162,7 +162,7 @@ void MosquittoTransceiver::publish(QString topic, QJsonObject jpayload)
 
 void MosquittoTransceiver::subscribe(QString topic)
 {
-    qDebug() << "Subscribing to " << topic;
+    //qDebug() << "Subscribing to " << topic;
 
     mutex_.lock();
     subscribeQueue_.enqueue(topic);
@@ -201,7 +201,8 @@ void MosquittoTransceiver::_onMessage(const mosquitto_message *message)
         startTime_.restart();
         mutex_startTime_.unlock();
 
-        qDebug() << "Message arrived from " << topic;
+        //qDebug() << "Message arrived from " << topic;
+        //qDebug() << "Payload in entrance: " << payload;
 
         emit _message(topic, jpayload);
     } catch (...) {
