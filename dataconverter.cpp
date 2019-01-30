@@ -194,6 +194,11 @@ void DataConverter::format(struct CANFrame frame)
         value = (frame.data[6].toInt() * 256.0) + frame.data[7].toInt();
         //qInfo() << topicName << ": " << value;
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "tc1";
+        value = (((frame.data[6].toInt() * 256.0) + frame.data[7].toInt()) * 1470.0 / 65535.0) - 270.0;
+        //qInfo() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
         break;
 
         case 769:
@@ -204,6 +209,11 @@ void DataConverter::format(struct CANFrame frame)
 
         topicName = "dmap";
         value = (frame.data[2].toInt() * 256.0) + frame.data[3].toInt();
+        //qInfo() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "tc2";
+        value = (((frame.data[6].toInt() * 256.0) + frame.data[7].toInt()) * 1470.0 / 65535.0) - 270.0;
         //qInfo() << topicName << ": " << value;
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
         break;
@@ -279,6 +289,16 @@ void DataConverter::format(struct CANFrame frame)
         value = ((frame.data[0].toInt() * 256.0) + frame.data[1].toInt());
         //qInfo() << topicName << ": " << value;
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "tc_pot";
+        value = ((frame.data[2].toInt() * 256.0) + frame.data[3].toInt();
+        //qInfo() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
+
+        topicName = "gear_pot";
+        value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt();
+        //qInfo() << topicName << ": " << value;
+        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
         break;
 
         case 776:
@@ -293,33 +313,7 @@ void DataConverter::format(struct CANFrame frame)
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
         break;
 
-        case 768:
-        topicName = "tc1";
-        value = (((frame.data[6].toInt() * 256.0) + frame.data[7].toInt()) * 1470.0 / 65535.0) - 270.0;
-        //qInfo() << topicName << ": " << value;
-        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
-        break;
-
-        case 769:
-        topicName = "tc2";
-        value = (((frame.data[6].toInt() * 256.0) + frame.data[7].toInt()) * 1470.0 / 65535.0) - 270.0;
-        //qInfo() << topicName << ": " << value;
-        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
-        break;
-
-        case 775:
-        topicName = "tc_pot";
-        value = ((frame.data[2].toInt() * 256.0) + frame.data[3].toInt();
-        //qInfo() << topicName << ": " << value;
-        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
-
-        topicName = "gear_pot";
-        value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt();
-        //qInfo() << topicName << ": " << value;
-        transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
-        break;
-
-        case 775:
+        case 777:
         topicName = "pbrake_front";
         value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt();
         //qInfo() << topicName << ": " << value;
