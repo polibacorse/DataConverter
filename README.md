@@ -4,7 +4,7 @@
 ### Dependencies
 To build the project you need to install required dependencies:
 ```
-# dnf install make qt qt-devel qt5 qt5-devel mosquitto mosquitto-devel
+# dnf install make qt5 qt5-devel mosquitto mosquitto-devel
 ```
 
 
