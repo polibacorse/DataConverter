@@ -56,7 +56,7 @@ void DataConverter::format(struct CANFrame frame)
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
 
         topicName = "steer_pos";
-        value = ((frame.data[4].toInt() * 256.0 + frame.data[5].toInt()) * 360.0 / 16383.0] - 180.0;
+        value = ((frame.data[4].toInt() * 256.0 + frame.data[5].toInt()) * 360.0 / 16383.0) - 180.0;
         //qInfo() << topicName << ": " << value;
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
         break;
@@ -291,12 +291,12 @@ void DataConverter::format(struct CANFrame frame)
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
 
         topicName = "tc_pot";
-        value = ((frame.data[2].toInt() * 256.0) + frame.data[3].toInt();
+        value = ((frame.data[2].toInt() * 256.0) + frame.data[3].toInt());
         //qInfo() << topicName << ": " << value;
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
 
         topicName = "gear_pot";
-        value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt();
+        value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt());
         //qInfo() << topicName << ": " << value;
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
         break;
@@ -315,12 +315,12 @@ void DataConverter::format(struct CANFrame frame)
 
         case 777:
         topicName = "pbrake_front";
-        value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt();
+        value = ((frame.data[4].toInt() * 256.0) + frame.data[5].toInt());
         //qInfo() << topicName << ": " << value;
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
 
         topicName = "pbrake_rear";
-        value = ((frame.data[6].toInt() * 256.0) + frame.data[7].toInt();
+        value = ((frame.data[6].toInt() * 256.0) + frame.data[7].toInt());
         //qInfo() << topicName << ": " << value;
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
         break;
