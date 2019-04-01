@@ -28,7 +28,7 @@ struct CANFrame DataConverter::JSON2CAN(const QJsonObject data)
 {
     struct CANFrame frame = {
         .id = data["id"].toInt(),
-        .time = data["time"].toInt(),
+        .time = data["time"],
         .data = data["data"].toArray(),
     };
 
@@ -328,12 +328,12 @@ void DataConverter::format(struct CANFrame frame)
         case 779:
         // TODO possibly topic name mismatch: th20 -> th2o
         topicName = "th20";
-        value = (((frame.data[0].toInt() * 256.0) + frame.data[1].toInt()) * 160.0 / 65535.0) - 10.0;
+        value = (((frame.data[0].toInt() * 256.0) + frame.data[1].toInt()) * 160.0 / 256.0) - 10.0;
         //qInfo() << topicName << ": " << value;
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
 
         topicName = "toil";
-        value = (((frame.data[2].toInt() * 256.0) + frame.data[3].toInt()) * 160.0 / 65535.0) - 10.0;
+        value = (((frame.data[2].toInt() * 256.0) + frame.data[3].toInt()) * 160.0 / 256.0) - 10.0;
         //qInfo() << topicName << ": " << value;
         transceiver->publish(topicPrefix + topicName, {{"time", frame.time}, {"value", value}});
 
